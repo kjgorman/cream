@@ -1,37 +1,54 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 from partitions import choose
 import genetic  as g
 import sampling as s
 
 if __name__ == '__main__':
-    pop_freqs = s.sample_random(10000)
+    pop_freqs = s.sample_fourier(50000)
+    stretch = 1
 
     # create 100 random subsamples
-    population = [ choose(pop_freqs, 256) for _ in xrange(0, 1000) ]
-    base_line = np.sin((1.0 / 2) * np.arange(256))
-    x_axis = np.arange(256)
+    width = 256
+    population = [ choose(pop_freqs, width / stretch) for _ in xrange(0, 100) ]
+    base_line = 20 * np.sin((1.0 / 16) * np.arange(width))
+    x_axis = np.arange(width)
 
     def best_error(pop):
-        return g.evaluate(pop, base_line)[0][0]
+        return g.evaluate(pop, base_line, stretch)[0][0]
 
-    epoch = 0
     delta = 10000
     previous = 10000
 
-    while best_error(population) > 0.05 and delta > 0.00001:
-        population = g.generation(population, base_line)
-        best = best_error(population)
+    figure = plt.figure()
+    line, base = plt.plot([], [], x_axis, base_line)
 
-        if epoch % 1000 == 0:
-            print "epoch %s \t RMSE: %s \t delta: %s" % (epoch, best, delta)
-            delta = previous - best
-            previous = best
+    plt.xlim(0, width)
+    plt.ylim(-200, 200)
 
-        epoch += 1
+    def update_line(frame):
+        # this is stupid -- should pack it into an object
+        global population
+        global delta
+        global base_line
+        global stretch
+        global line
+        global previous
+        epoch = 0
 
-    best = g.evaluate(population, base_line)[0][1]
+        while epoch < 1000:
+            population = g.generation(population, base_line, stretch)
+            best = best_error(population)
 
-    plt.plot(x_axis, best, x_axis, base_line)
+            if epoch % 1000 == 0:
+                print "epoch %s \t RMSE: %s \t delta: %s" % (epoch, best, delta)
+                delta = previous - best
+                previous = best
+            epoch += 1
+
+        line.set_data(np.arange(width), g.evaluate(population, base_line, stretch)[0][1])
+
+    anim = animation.FuncAnimation(figure, update_line, 50, interval=5)
     plt.show()

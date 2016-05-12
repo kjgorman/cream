@@ -7,11 +7,11 @@ import sampling as s
 def rms_error(actual, predicted):
     return np.sqrt(np.mean(np.square(actual - predicted)))
 
-def evaluate(population, base_line):
+def evaluate(population, base_line, stretch):
     fitted = []
 
     for chromosome in population:
-        fn = np.fft.ifft(chromosome)
+        fn = np.fft.ifft(chromosome, n=len(chromosome)*stretch)
         fitness = rms_error(base_line, fn.real)
 
         fitted.append((fitness, chromosome))
@@ -20,9 +20,9 @@ def evaluate(population, base_line):
 
     return fitted
 
-def generation(population, base_line):
-    fitted = evaluate(population, base_line)
-    selected, rest = halves(map(lambda l: map(lambda ll: ll.real, l[1]), fitted))
+def generation(population, base_line, stretch):
+    fitted = evaluate(population, base_line, stretch)
+    selected, _ = halves(map(lambda l: map(lambda ll: ll.real, l[1]), fitted))
     mutated  = mutate(list(selected))
 
     result = selected + mutated
@@ -62,8 +62,15 @@ def mutations(selection):
         size = len(chromosome)
         mutated = np.zeros(size)
         for i in xrange(0, size):
-            choice = np.random.uniform(0, 1) < (1.0 / size)
-            mutated[i] = s.sample() if choice else chromosome[i]
+            choice = np.random.uniform(0, 1) < (1.0 / 2.0)
+
+            if choice:
+                prev = mutated[i-1] if i > 0 else 0
+                next = chromosome[i+1] if i < (size-1) else 100
+
+                mutated[i] = s.sample_between(prev, next)
+            else:
+                mutated[i] = chromosome[i]
 
         resulting.append(mutated)
 

@@ -2,8 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+import sampling as s
+
 def random_lines_with_ifft():
-    sample_size = 100
+    sample_size = 240
     x_axis = np.arange(sample_size)
 
     def sample_random(lo, hi, size):
@@ -12,10 +14,11 @@ def random_lines_with_ifft():
                      np.random.uniform(lo, hi, size)) ]
 
     def update_line(frame):
-        fs = sample_random(0, 50, sample_size)
-        y = np.fft.ifft(fs)
+        #fs = sample_random(0, 50, sample_size)
+        fs = s.sample_fourier(sample_size)
+        y = np.fft.ifft(fs, n=200)
 
-        line.set_data(x_axis, y.real)
+        line.set_data(np.arange(200), y.real)
 
     figure = plt.figure()
     line, = plt.plot([],[],'-r') #TODO: 'r'?

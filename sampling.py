@@ -1,15 +1,32 @@
 import numpy as np
 
-sample_minimum = -1
-sample_maximum = 1
+sample_minimum = -200
+sample_maximum = 200
 
-def sample():
-    return sample_n(sample_minimum, sample_maximum, 1)[0]
+def sample_between(lo, hi):
+    lo = max(sample_minimum, lo)
+    hi = min(sample_maximum, hi)
 
-def sample_random(size):
-        return [ complex(l, r) for (l, r) in
-                 zip(sample_n(sample_minimum, sample_maximum, size),
-                     sample_n(sample_minimum, sample_maximum, size)) ]
+    return np.random.uniform(lo, hi)
 
-def sample_n(lo, hi, size):
-    return np.random.uniform(lo, hi, size)
+
+def sample_fourier(size):
+    result = np.ndarray((size), dtype="complex")
+    # result[0] = mean
+    # result[:size/2] = monotonic positive
+    # result[size/2:] = monotonic negative
+
+    currentMin = 0
+    for ix in xrange(1, size / 2):
+        sampled = np.random.uniform(currentMin, sample_maximum)
+        result[ix] = sampled
+        currentMin = sampled
+
+    currentMax = 0
+    for ix in xrange(size / 2, size):
+        sampled = np.random.uniform(sample_minimum, currentMax)
+        result[ix] = sampled
+        currentMax = sampled
+
+    result[0] = np.mean(result[1:])
+    return result
