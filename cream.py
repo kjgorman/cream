@@ -7,17 +7,18 @@ import genetic  as g
 import sampling as s
 
 if __name__ == '__main__':
+    width = 1536
+    # pop_fouriers = [ s.sample_fourier(width) for _ in xrange(0, 5000) ]
     pop_freqs = s.sample_fourier(50000)
-    stretch = 1
 
     # create 100 random subsamples
-    width = 256
-    population = [ choose(pop_freqs, width / stretch) for _ in xrange(0, 100) ]
-    base_line = 20 * np.sin((1.0 / 16) * np.arange(width))
+    population = [ choose(pop_freqs, width) for _ in xrange(0, 500) ]
+    #population = choose(pop_fouriers, 100)
+    base_line = 30 * np.cos((1.0 / 64) * np.arange(width))
     x_axis = np.arange(width)
 
     def best_error(pop):
-        return g.evaluate(pop, base_line, stretch)[0][0]
+        return g.evaluate(pop, base_line)[0][0]
 
     delta = 10000
     previous = 10000
@@ -33,22 +34,21 @@ if __name__ == '__main__':
         global population
         global delta
         global base_line
-        global stretch
         global line
         global previous
         epoch = 0
 
-        while epoch < 1000:
-            population = g.generation(population, base_line, stretch)
+        while epoch < 100:
+            population = g.generation(population, base_line)
             best = best_error(population)
 
-            if epoch % 1000 == 0:
+            if epoch % 100 == 0:
                 print "epoch %s \t RMSE: %s \t delta: %s" % (epoch, best, delta)
                 delta = previous - best
                 previous = best
             epoch += 1
 
-        line.set_data(np.arange(width), g.evaluate(population, base_line, stretch)[0][1])
+        line.set_data(np.arange(width), g.evaluate(population, base_line)[0][1])
 
     anim = animation.FuncAnimation(figure, update_line, 50, interval=5)
     plt.show()

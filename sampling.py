@@ -1,7 +1,7 @@
 import numpy as np
 
-sample_minimum = -200
-sample_maximum = 200
+sample_minimum = -50
+sample_maximum = 50
 
 def sample_between(lo, hi):
     lo = max(sample_minimum, lo)
@@ -9,9 +9,17 @@ def sample_between(lo, hi):
 
     return np.random.uniform(lo, hi)
 
+def sample_around(point):
+    # TODO(kjgorman): simulated annealing?
+    sample_range = sample_maximum - sample_minimum
+    deviancy = 0.1 * sample_range
+
+    return sample_between(
+        max(point - deviancy, sample_minimum),
+        min(point + deviancy, sample_maximum))
 
 def sample_fourier(size):
-    result = np.ndarray((size), dtype="complex")
+    result = np.ndarray(size, dtype="complex")
     # result[0] = mean
     # result[:size/2] = monotonic positive
     # result[size/2:] = monotonic negative

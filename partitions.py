@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 def pairs(l):
     """
@@ -31,10 +32,7 @@ def halves(l):
 
 def choose(data, size):
     """
-    Returns a random (without repetition) selection of elements
+    Returns a random (with repetition) selection of elements
     of length min(size, len(data))
     """
-    sliced = list(data)
-    random.shuffle(sliced)
-
-    return sliced[:size]
+    return [ data[np.random.randint(0, len(data))] for _ in xrange(0, size) ]
