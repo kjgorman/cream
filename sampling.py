@@ -1,40 +1,48 @@
 import numpy as np
 
-sample_minimum = -50
-sample_maximum = 50
+class Sampler():
 
-def sample_between(lo, hi):
-    lo = max(sample_minimum, lo)
-    hi = min(sample_maximum, hi)
+    def __init__(self, min, max):
+        self.sample_minimum = min
+        self.sample_maximum = max
 
-    return np.random.uniform(lo, hi)
+    def sample_noise(self, temperature):
+        range = (self.sample_maximum - self.sample_minimum) * temperature
+        distance = range / 2
 
-def sample_around(point):
-    # TODO(kjgorman): simulated annealing?
-    sample_range = sample_maximum - sample_minimum
-    deviancy = 0.1 * sample_range
+        return self.sample_between(-distance, distance)
 
-    return sample_between(
-        max(point - deviancy, sample_minimum),
-        min(point + deviancy, sample_maximum))
+    def sample_between(self, lo, hi):
+        lo = max(self.sample_minimum, lo)
+        hi = min(self.sample_maximum, hi)
 
-def sample_fourier(size):
-    result = np.ndarray(size, dtype="complex")
-    # result[0] = mean
-    # result[:size/2] = monotonic positive
-    # result[size/2:] = monotonic negative
+        return np.random.uniform(lo, hi)
 
-    currentMin = 0
-    for ix in xrange(1, size / 2):
-        sampled = np.random.uniform(currentMin, sample_maximum)
-        result[ix] = sampled
-        currentMin = sampled
+    def sample_around(self, point):
+        sample_range = self.sample_maximum - self.sample_minimum
+        deviancy = 0.1 * sample_range
 
-    currentMax = 0
-    for ix in xrange(size / 2, size):
-        sampled = np.random.uniform(sample_minimum, currentMax)
-        result[ix] = sampled
-        currentMax = sampled
+        return sample_between(
+            max(point - deviancy, self.sample_minimum),
+            min(point + deviancy, self.sample_maximum))
 
-    result[0] = np.mean(result[1:])
-    return result
+    def sample_fourier(self, size):
+        result = np.ndarray(size, dtype="complex")
+        # result[0] = mean
+        # result[:size/2] = monotonic positive
+        # result[size/2:] = monotonic negative
+
+        currentMin = 0
+        for ix in xrange(1, size / 2):
+            sampled = np.random.uniform(currentMin, self.sample_maximum)
+            result[ix] = sampled
+            currentMin = sampled
+
+            currentMax = 0
+            for ix in xrange(size / 2, size):
+                sampled = np.random.uniform(self.sample_minimum, currentMax)
+                result[ix] = sampled
+                currentMax = sampled
+
+                result[0] = 0
+                return result

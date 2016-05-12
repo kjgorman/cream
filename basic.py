@@ -3,28 +3,27 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 import sampling as s
+import partitions as p
 
 def random_lines_with_ifft():
-    sample_size = 240
+    sample_size = 256
     x_axis = np.arange(sample_size)
-
-    def sample_random(lo, hi, size):
-        return [ complex(l, r) for (l, r) in
-                 zip(np.random.uniform(lo, hi, size),
-                     np.random.uniform(lo, hi, size)) ]
+    sampler = s.Sampler(-50, 50)
 
     def update_line(frame):
-        #fs = sample_random(0, 50, sample_size)
-        fs = s.sample_fourier(sample_size)
-        y = np.fft.ifft(fs, n=200)
+        fs = p.choose(sampler.sample_fourier(10000), sample_size)
+        ss = sampler.sample_fourier(sample_size)
+        yf = np.fft.ifft(fs)
+        ys = np.fft.ifft(ss)
 
-        line.set_data(np.arange(200), y.real)
+        first.set_data(np.arange(sample_size), yf.real)
+        second.set_data(np.arange(sample_size), ys.real)
 
     figure = plt.figure()
-    line, = plt.plot([],[],'-r') #TODO: 'r'?
+    first, second = plt.plot([],[],[],[],'-r')
 
-    plt.xlim(0, 100)
-    plt.ylim(-20, 20)
+    plt.xlim(0, sample_size)
+    plt.ylim(-200, 200)
 
     anim = animation.FuncAnimation(figure,
                                    update_line,

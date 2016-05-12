@@ -4,10 +4,12 @@ import random
 from partitions import halves, pairs, choose
 import sampling as s
 
-pop_fourier = s.sample_fourier(50000)
-
 def rms_error(actual, predicted):
-    return np.sqrt(np.mean(np.square(actual - predicted)))
+    cutoff = int(len(actual) * 0.05)
+    cut_actual = actual[cutoff:(len(actual) - cutoff)]
+    cut_predicted = predicted[cutoff:(len(predicted) - cutoff)]
+
+    return np.sqrt(np.mean(np.square(cut_actual - cut_predicted)))
 
 def evaluate(population, base_line):
     fitted = []
@@ -22,22 +24,17 @@ def evaluate(population, base_line):
 
     return fitted
 
-def generation(population, base_line):
+def generation(population, base_line, temperature, sampler):
     fitted = evaluate(population, base_line)
     selected, _ = halves(map(lambda l: map(lambda ll: ll.real, l[1]), fitted))
-    mutated  = mutate(list(selected))
+    mutated  = mutate(list(selected), temperature, sampler)
 
-    return mutate(selected) + mutated
+    return selected + mutated
 
-def mutate(selection):
+def mutate(selection, temperature, sampler):
     random.shuffle(selection)
     first, second = halves(selection)
-    return crossover(first) + mutations(second)
-
-def resample(selection): #just add a bunch of new ones completely
-    width = len(selection[0])
-
-    return [ choose(pop_fourier, width) for _ in xrange(0, len(selection)) ]
+    return crossover(first) + mutations(second, temperature, sampler)
 
 def crossover(selection):
     """
@@ -59,7 +56,7 @@ def crossover(selection):
 
     return resulting
 
-def mutations(selection):
+def mutations(selection, temperature, sampler):
     resulting = []
 
     for chromosome in selection:
@@ -72,7 +69,19 @@ def mutations(selection):
                 prev = mutated[i-1] if i > 0 else 0
                 next = chromosome[i+1] if i < (size - 1) else 100
 
-                mutated[i] = s.sample_between(prev, next)
+                # prev should always be less if positive, unless next is negative
+                # prev should always be less if negative
+                edge = prev == 0 or next == 100
+                sortable = (prev < 0 and next < 0) or (prev > 0 and next > 0)
+
+                # this will turn it into a perfect square wave by correcting the
+                # frequency ordering...
+                if not edge and sortable:
+                    mutated[i-1]    += temperature * (chromosome[i+1] - mutated[i-1])
+                    chromosome[i+1] -= temperature * (chromosome[i+1] - mutated[i-1])
+
+                mutated[i] = sampler.sample_between(prev, next)
+                mutated[i] += sampler.sample_noise(temperature)
             else:
                 mutated[i] = chromosome[i]
 
