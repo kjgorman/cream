@@ -1,10 +1,13 @@
 import numpy as np
 import random
 
+from partitions import halves, pairs
+import sampling as s
+
 def rms_error(actual, predicted):
     return np.sqrt(np.mean(np.square(actual - predicted)))
 
-def evaluate(population):
+def evaluate(population, base_line):
     fitted = []
 
     for chromosome in population:
@@ -18,7 +21,7 @@ def evaluate(population):
     return fitted
 
 def generation(population, base_line):
-    fitted = evaluate(population)
+    fitted = evaluate(population, base_line)
     selected, rest = halves(map(lambda l: map(lambda ll: ll.real, l[1]), fitted))
     mutated  = mutate(list(selected))
 
@@ -60,8 +63,7 @@ def mutations(selection):
         mutated = np.zeros(size)
         for i in xrange(0, size):
             choice = np.random.uniform(0, 1) < (1.0 / size)
-            # TODO(kjgorman): duplication of hi/lo params
-            mutated[i] = sample() if choice else chromosome[i]
+            mutated[i] = s.sample() if choice else chromosome[i]
 
         resulting.append(mutated)
 
