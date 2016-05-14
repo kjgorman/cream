@@ -95,7 +95,8 @@ def run_sine():
     run_simulation(base_line, -75, 75, -100, 100)
 
 def run_model():
-    cs = e.process_example()[60:(60+256)]
+    start = 60
+    cs = e.process_example()[start:(start+256)]
     xs, ys = e.transpose(cs)
     scale_factor = 100
     sample_min = -scale_factor
@@ -103,8 +104,9 @@ def run_model():
 
     base_line = np.asarray(ys, dtype="float")
     base_line *= scale_factor/base_line.max()
+    base_line -= base_line.mean() # re-center around 0
     run_simulation(base_line, sample_min, sample_max, sample_min, sample_max * 2)
 
 if __name__ == '__main__':
-    #run_model()
-    run_sine()
+    run_model()
+    #run_sine()

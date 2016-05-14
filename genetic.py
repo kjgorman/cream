@@ -5,7 +5,7 @@ from partitions import halves, pairs, choose
 import sampling as s
 
 def rms_error(actual, predicted):
-    cutoff = int(len(actual) * 0.05)
+    cutoff = int(len(actual) * 0.0)
     cut_actual = actual[cutoff:(len(actual) - cutoff)]
     cut_predicted = predicted[cutoff:(len(predicted) - cutoff)]
 
